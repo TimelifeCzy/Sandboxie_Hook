@@ -16,6 +16,9 @@
     <Filter Include="sbiehook">
       <UniqueIdentifier>{ee8974d0-b22f-41ca-ac36-e6490ddd6aaf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{92143b9d-c731-4af4-b3c6-45645288dd72}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hook.h">
@@ -23,6 +26,15 @@
     </ClInclude>
     <ClInclude Include="libsandboxiehook.h">
       <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\list.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\map.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\pool.h">
+      <Filter>common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -37,6 +49,15 @@
     </ClCompile>
     <ClCompile Include="libmem.c">
       <Filter>sbiehook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\list.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\map.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\pool.c">
+      <Filter>common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

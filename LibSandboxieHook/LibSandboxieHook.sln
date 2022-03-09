@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libSandboxieHook", "LibSand
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcessMonitor", "ProcessMonitor\ProcessMonitor.vcxproj", "{7078127F-74E1-4FED-9365-D1B6BA939072}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "example", "example", "{B6DD93E8-AA57-45E4-B51E-E651ACEB47D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +36,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7078127F-74E1-4FED-9365-D1B6BA939072} = {B6DD93E8-AA57-45E4-B51E-E651ACEB47D9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CA2A09C2-3ACF-484A-98ED-EC890E5592DE}

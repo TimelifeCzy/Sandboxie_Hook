@@ -27,6 +27,10 @@
 #include "hook.h"
 #include "../common/pool.h"
 #include "../common/pattern.h"
+#include "../common/list.h"
+
+#include <memory.h>
+#include <tlhelp32.h>
 
 //#include <stdio.h>
 
@@ -36,6 +40,19 @@ const WCHAR* Dll_ImageName = NULL;
 const WCHAR* Dll_BoxName = NULL;
 
 ULONG64 Dll_ProcessFlags = 0;
+
+// 链表不上锁
+static LIST g_procthread_list;
+CRITICAL_SECTION g_procthrea_lock;
+
+// 结构内锁
+typedef struct _ProcThreadInfo
+{
+    LIST_ELEM list_elem;
+    ULONG dwProcessId;
+    ULONG dwThreadId;
+    CRITICAL_SECTION lock;
+}ProcThreadInfo, * PProcThreadInfo;
 
 //---------------------------------------------------------------------------
 // Functions
@@ -115,8 +132,6 @@ extern ULONG Dll_Windows;
 //---------------------------------------------------------------------------
 // SbieApi_HookTramp
 //---------------------------------------------------------------------------
-
-
 _FX LONG SbieApi_HookTramp(void* Source, void* Trampoline)
 {
     NTSTATUS status;
@@ -140,7 +155,13 @@ _FX LONG SbieApi_HookTramp(void* Source, void* Trampoline)
 //---------------------------------------------------------------------------
 
 
-_FX void* SbieDll_Hook(
+_FX void Dll_Init()
+{
+    Dll_InitMem();
+    List_Init(&g_procthread_list);
+    InitializeCriticalSectionAndSpinCount(&g_procthrea_lock, 1000);
+}
+_FX void* Dll_Hook(
     const char* SourceFuncName, void* SourceFunc, void* DetourFunc)
 {
     static const WCHAR* _fmt1 = L"%s (%d)";
@@ -521,6 +542,90 @@ _FX void* SbieDll_Hook(
 #endif _WIN64
 
     return func;
+}
+_FX void Dll_SuspendAllThread()
+{
+    if (0 >= List_Count(&g_procthread_list))
+        return;
+    PProcThreadInfo list_head = (PProcThreadInfo)List_Head(&g_procthread_list);
+   
+    while (list_head)
+    {
+        EnterCriticalSection(&list_head->lock);
+        if ((GetCurrentProcessId() == list_head->dwProcessId) && (GetCurrentThreadId() != list_head->dwThreadId))
+        {
+            HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, TRUE, list_head->dwThreadId);
+
+            if (NULL != hThread)
+            {
+                SuspendThread(hThread);
+                CloseHandle(hThread);
+            }
+        }
+        LeaveCriticalSection(&list_head->lock);
+        list_head = List_Next(list_head);
+    }
+}
+_FX void Dll_ResumeAllThread()
+{
+    if (0 >= List_Count(&g_procthread_list))
+        return;
+
+    while (1)
+    {
+        PProcThreadInfo list_head = (PProcThreadInfo)List_Head(&g_procthread_list);
+        if (!list_head)
+            break;
+        EnterCriticalSection(&list_head->lock);
+        if ((GetCurrentProcessId() == list_head->dwProcessId) && (GetCurrentThreadId() != list_head->dwThreadId))
+        {
+            HANDLE hThread = OpenThread(THREAD_SUSPEND_RESUME, TRUE, list_head->dwThreadId);
+
+            if (NULL != hThread)
+            {
+                ResumeThread(hThread);
+                CloseHandle(hThread);
+            }
+        }
+        LeaveCriticalSection(&list_head->lock);
+        List_Remove(&g_procthread_list, list_head);
+    }
+}
+_FX void Dll_GetAllThread()
+{
+    __try { 
+
+        HANDLE hToolhelp = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+        if ((INVALID_HANDLE_VALUE == hToolhelp) || (NULL == hToolhelp))
+        {
+            return;
+        }
+
+        THREADENTRY32 ts = { 0 };
+        ts.dwSize = sizeof(THREADENTRY32);
+        BOOL bNext = Thread32First(hToolhelp, &ts);
+        ProcThreadInfo* prothr_pools = NULL;
+        while (bNext)
+        {
+            prothr_pools = Dll_Alloc(sizeof(ProcThreadInfo));
+            InitializeCriticalSectionAndSpinCount(&prothr_pools->lock, 1000);
+            prothr_pools->dwProcessId = ts.th32OwnerProcessID;
+            prothr_pools->dwThreadId = ts.th32ThreadID;
+            List_Insert_After(&g_procthread_list, NULL, &prothr_pools);
+            bNext = Thread32Next(hToolhelp, &ts);
+        }
+        CloseHandle(hToolhelp);
+    }
+    __finally
+    {
+
+    }
+
+}
+_FX void Dll_UnHook()
+{
+    //
 }
 
 

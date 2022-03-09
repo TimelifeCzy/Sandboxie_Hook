@@ -4,6 +4,9 @@ d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\hook_tramp.obj
 d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\hook_inst.obj
 d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\libsandboxiehook.obj
 d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\libmem.obj
+d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\pool.obj
+d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\map.obj
+d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\list.obj
 d:\sandboxie_hook\libsandboxiehook\x64\debug\libsandboxiehook.lib
 d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\libsandboxiehook.tlog\cl.command.1.tlog
 d:\sandboxie_hook\libsandboxiehook\libsandboxiehook\x64\debug\libsandboxiehook.tlog\cl.read.1.tlog

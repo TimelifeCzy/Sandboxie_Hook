@@ -165,22 +165,38 @@ typedef struct _THREAD_DATA {
 //---------------------------------------------------------------------------
 // Functions (dllmem)
 //---------------------------------------------------------------------------
+BOOLEAN Dll_InitMem(void);
+
+void* Dll_Alloc(ULONG size);
+void* Dll_AllocTemp(ULONG size);
+void Dll_Free(void* ptr);
+
 void* Dll_AllocCode128(void);
 void Dll_FreeCode128(void* ptr);
+
+THREAD_DATA* Dll_GetTlsData(ULONG* pLastError);
+void Dll_FreeTlsData(void);
+
+WCHAR* Dll_GetTlsNameBuffer(THREAD_DATA* data, ULONG which, ULONG size);
+void Dll_PushTlsNameBuffer(THREAD_DATA* data);
+void Dll_PopTlsNameBuffer(THREAD_DATA* data);
 
 //---------------------------------------------------------------------------
 // Functions (dllhook)
 //---------------------------------------------------------------------------
 NTSTATUS Dll_GetSettingsForImageName(
     const WCHAR* setting, WCHAR* value, ULONG value_size, const WCHAR* deftext);
-
 BOOLEAN Dll_SkipHook(const WCHAR *HookName);
-
 void *Dll_JumpStub(void *OldCode, void *NewCode, ULONG_PTR StubArg);
-
 ULONG_PTR *Dll_JumpStubData(void);
-
 ULONG_PTR *Dll_JumpStubDataForCode(void *StubCode);
+
+void Dll_Init();
+void Dll_UnHook();
+void* Dll_Hook(const char* SourceFuncName, void* SourceFunc, void* DetourFunc);
+void Dll_GetAllThread();
+void Dll_SuspendAllThread();
+void Dll_ResumeAllThread();
 
 #ifdef _WIN64
 

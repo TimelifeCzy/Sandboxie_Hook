@@ -14,8 +14,10 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <Windows.h>
 
 #include "map.h"
+#include "pool.h"
 
 struct map_node_t {
   unsigned int hash;
