@@ -23,6 +23,7 @@
 
 
 #define NOGDI
+#include <Windows.h>
 #include "libsandboxiehook.h"
 #include "hook.h"
 #include "../common/pool.h"
@@ -67,39 +68,39 @@ ULONG_PTR  DLL_FindWow64Target(ULONG_PTR address);
 // SboxDll does not link in the CRT. Instead, it piggybacks onto the CRT routines that are in ntdll.dll.
 // However, the ntdll.lib from the 7600 DDK does not export everything we need. So we must use runtime dynamic linking.
 
-int __CRTDECL Sbie_snwprintf(wchar_t* _Buffer, size_t Count, const wchar_t* const _Format, ...)
-{
-    int _Result;
-    va_list _ArgList;
+//int __CRTDECL Sbie_snwprintf(wchar_t* _Buffer, size_t Count, const wchar_t* const _Format, ...)
+//{
+//    int _Result;
+//    va_list _ArgList;
+//
+//    extern int(*P_vsnwprintf)(wchar_t* _Buffer, size_t Count, const wchar_t* const, va_list Args);
+//
+//    va_start(_ArgList, _Format);
+//    _Result = P_vsnwprintf(_Buffer, Count, _Format, _ArgList);
+//    va_end(_ArgList);
+//
+//    if (_Result == -1 && _Buffer != NULL && Count != 0)
+//        _Buffer[Count - 1] = 0; // ensure the resulting string is always null terminated
+//
+//    return _Result;
+//}
 
-    extern int(*P_vsnwprintf)(wchar_t* _Buffer, size_t Count, const wchar_t* const, va_list Args);
-
-    va_start(_ArgList, _Format);
-    _Result = P_vsnwprintf(_Buffer, Count, _Format, _ArgList);
-    va_end(_ArgList);
-
-    if (_Result == -1 && _Buffer != NULL && Count != 0)
-        _Buffer[Count - 1] = 0; // ensure the resulting string is always null terminated
-
-    return _Result;
-}
-
-int __CRTDECL Sbie_snprintf(char* _Buffer, size_t Count, const char* const _Format, ...)
-{
-    int _Result;
-    va_list _ArgList;
-
-    extern int(*P_vsnprintf)(char* _Buffer, size_t Count, const char* const, va_list Args);
-
-    va_start(_ArgList, _Format);
-    _Result = P_vsnprintf(_Buffer, Count, _Format, _ArgList);
-    va_end(_ArgList);
-
-    if (_Result == -1 && _Buffer != NULL && Count != 0)
-        _Buffer[Count - 1] = 0; // ensure the resulting string is always null terminated
-
-    return _Result;
-}
+//int __CRTDECL Sbie_snprintf(char* _Buffer, size_t Count, const char* const _Format, ...)
+//{
+//    int _Result;
+//    va_list _ArgList;
+//
+//    extern int(*P_vsnprintf)(char* _Buffer, size_t Count, const char* const, va_list Args);
+//
+//    va_start(_ArgList, _Format);
+//    _Result = P_vsnprintf(_Buffer, Count, _Format, _ArgList);
+//    va_end(_ArgList);
+//
+//    if (_Result == -1 && _Buffer != NULL && Count != 0)
+//        _Buffer[Count - 1] = 0; // ensure the resulting string is always null terminated
+//
+//    return _Result;
+//}
 
 //---------------------------------------------------------------------------
 // Variables
@@ -125,9 +126,11 @@ VECTOR_TABLE SbieDllVectorTable[NUM_VTABLES] = {
     {0,0,0},{0,0,0},{0,0,0},{0,0,0}
 };
 
-extern CRITICAL_SECTION VT_CriticalSection;
+//extern CRITICAL_SECTION VT_CriticalSection;
+CRITICAL_SECTION VT_CriticalSection;
 #endif _WIN64
-extern ULONG Dll_Windows;
+//extern ULONG Dll_Windows;
+ULONG Dll_Windows;
 
 //---------------------------------------------------------------------------
 // SbieApi_HookTramp
@@ -159,6 +162,7 @@ _FX void Dll_Init()
 {
     Dll_InitMem();
     List_Init(&g_procthread_list);
+    InitializeCriticalSectionAndSpinCount(&VT_CriticalSection, 1000);
     InitializeCriticalSectionAndSpinCount(&g_procthrea_lock, 1000);
 }
 _FX void* Dll_Hook(

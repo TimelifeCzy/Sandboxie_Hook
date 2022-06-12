@@ -24,8 +24,8 @@
 #define __MY_PATTERN_H
 
 
-#include "../common/pool.h"
-
+#include "pool.h"
+#include <Windows.h>
 
 //---------------------------------------------------------------------------
 // Structures and Types

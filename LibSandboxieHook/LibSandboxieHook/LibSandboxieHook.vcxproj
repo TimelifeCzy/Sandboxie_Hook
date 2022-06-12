@@ -83,9 +83,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\lib\</OutDir>
+    <TargetName>libSandboxieHookx64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\lib\</OutDir>
+    <TargetName>libSandboxieHookx64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,8 +160,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\defines.h" />
     <ClInclude Include="..\common\list.h" />
     <ClInclude Include="..\common\map.h" />
+    <ClInclude Include="..\common\pattern.h" />
     <ClInclude Include="..\common\pool.h" />
     <ClInclude Include="libsandboxiehook.h" />
     <ClInclude Include="hook.h" />
@@ -167,6 +173,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\common\map.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\common\pattern.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\common\pool.c">

@@ -81,8 +81,8 @@ extern ULONG64 Dll_ProcessFlags;
 extern "C" {
 #endif
 
-extern __declspec(dllexport) int __CRTDECL Sbie_snwprintf(wchar_t* _Buffer, size_t Count, const wchar_t* const _Format, ...);
-extern __declspec(dllexport) int __CRTDECL Sbie_snprintf(char* _Buffer, size_t Count, const char* const _Format, ...);
+//extern __declspec(dllexport) int __CRTDECL Sbie_snwprintf(wchar_t* _Buffer, size_t Count, const wchar_t* const _Format, ...);
+//extern __declspec(dllexport) int __CRTDECL Sbie_snprintf(char* _Buffer, size_t Count, const char* const _Format, ...);
 
 typedef struct _THREAD_DATA {
 

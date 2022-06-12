@@ -19,7 +19,6 @@
 // Pool Memory Manager
 //---------------------------------------------------------------------------
 
-#include <Windows.h>
 #include "pool.h"
 #include "list.h"
 #include "lock.h"

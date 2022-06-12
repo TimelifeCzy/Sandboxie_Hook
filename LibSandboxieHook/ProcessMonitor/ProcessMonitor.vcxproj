@@ -82,9 +82,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>D:\Sandboxie_Hook\LibSandboxieHook\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>D:\Sandboxie_Hook\LibSandboxieHook\lib\libSandboxieHookx64.lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -156,10 +158,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="libsandboxiehook.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="dllmain.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

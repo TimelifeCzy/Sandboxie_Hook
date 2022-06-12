@@ -125,7 +125,7 @@ ALIGNED BOOLEAN Hook_Analyze(
     HOOK_INST *inst)
 {
     UCHAR *addr;
-    WCHAR text[64];
+    //WCHAR text[64];
 
     memzero(inst, sizeof(HOOK_INST));
 
@@ -150,15 +150,15 @@ ALIGNED BOOLEAN Hook_Analyze(
         addr = Hook_Analyze_Inst(addr, inst);
         if (! addr) {
             addr = address;
-#ifdef KERNEL_MODE
-			RtlStringCbPrintfW(text, 64,
-#else
-			Sbie_snwprintf(text, 64, 
-#endif
-				L"%08p:  %02X,%02X,%02X,%02X,"
-                L"%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X", addr,
-                addr[0],  addr[1],  addr[2],  addr[3],  addr[4],  addr[5],
-                addr[6],  addr[7],  addr[8],  addr[9],  addr[10], addr[11]);
+//#ifdef KERNEL_MODE
+//			RtlStringCbPrintfW(text, 64,
+//#else
+//			Sbie_snwprintf(text, 64, 
+//#endif
+//				L"%08p:  %02X,%02X,%02X,%02X,"
+//                L"%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X", addr,
+//                addr[0],  addr[1],  addr[2],  addr[3],  addr[4],  addr[5],
+//                addr[6],  addr[7],  addr[8],  addr[9],  addr[10], addr[11]);
             //Log_Msg1(MSG_HOOK_ANALYZE, text);
             addr = NULL;
         }
@@ -166,13 +166,13 @@ ALIGNED BOOLEAN Hook_Analyze(
     } __except (EXCEPTION_EXECUTE_HANDLER) {
 
         addr = NULL;
-#ifdef KERNEL_MODE
-		RtlStringCbPrintfW(text, 64,
-#else
-		Sbie_snwprintf(text, 64,
-#endif
-			L"(fault at %p)", address);
-        //Log_Msg1(MSG_HOOK_ANALYZE, text);
+//#ifdef KERNEL_MODE
+//		RtlStringCbPrintfW(text, 64,
+//#else
+//		Sbie_snwprintf(text, 64,
+//#endif
+//			L"(fault at %p)", address);
+//        //Log_Msg1(MSG_HOOK_ANALYZE, text);
 
     }
 

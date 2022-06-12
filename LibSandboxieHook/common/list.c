@@ -19,7 +19,6 @@
 // Double-linked List
 //---------------------------------------------------------------------------
 
-#include <Windows.h>
 #include "list.h"
 
 #ifndef NULL
