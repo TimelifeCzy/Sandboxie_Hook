@@ -1,8 +1,0 @@
-﻿  LibSandboxieHook.c
-D:\Sandboxie_Hook\LibSandboxieHook\LibSandboxieHook\LibSandboxieHook.c(126,20): warning C4013: “SbieApi_Log”未定义；假设外部返回 int
-D:\Sandboxie_Hook\LibSandboxieHook\LibSandboxieHook\LibSandboxieHook.c(647,48): warning C4013: “SbieApi_QueryConfAsIs”未定义；假设外部返回 int
-  hook_inst.c
-D:\Sandboxie_Hook\LibSandboxieHook\LibSandboxieHook\hook_inst.c(156,18): warning C4013: “Sbie_snwprintf”未定义；假设外部返回 int
-  hook_tramp.c
-  正在生成代码...
-  LibSandboxieHook.vcxproj -> D:\Sandboxie_Hook\LibSandboxieHook\Debug\LibSandboxieHook.lib
