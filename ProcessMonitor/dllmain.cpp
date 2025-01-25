@@ -8,7 +8,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        ::MessageBox(NULL, L"inject hook", L"inject hook", MB_OK);
+        OutputDebugString(L"load process mon dll.");
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:

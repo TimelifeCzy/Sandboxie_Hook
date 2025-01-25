@@ -30,6 +30,15 @@
     <ClInclude Include="public.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="kflt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="minifilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver.c">
@@ -38,5 +47,16 @@
     <ClCompile Include="process.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
+    <ClCompile Include="kflt.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+    <ClCompile Include="minifilter.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="driver.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

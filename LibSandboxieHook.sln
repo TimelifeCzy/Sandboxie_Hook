@@ -9,6 +9,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcessMonitor", "ProcessMo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LowLevel", "low\LowLevel.vcxproj", "{255002EC-9FC7-422E-B497-BE2CC5012B2D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AssistInject", "AssistInject\AssistInject.vcxproj", "{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{255002EC-9FC7-422E-B497-BE2CC5012B2D} = {255002EC-9FC7-422E-B497-BE2CC5012B2D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -68,6 +73,18 @@ Global
 		{255002EC-9FC7-422E-B497-BE2CC5012B2D}.Release|x64.Build.0 = Release|x64
 		{255002EC-9FC7-422E-B497-BE2CC5012B2D}.Release|x86.ActiveCfg = Release|Win32
 		{255002EC-9FC7-422E-B497-BE2CC5012B2D}.Release|x86.Build.0 = Release|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Debug|ARM.ActiveCfg = Debug|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Debug|x64.ActiveCfg = Debug|x64
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Debug|x64.Build.0 = Debug|x64
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Debug|x86.ActiveCfg = Debug|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Debug|x86.Build.0 = Debug|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Release|ARM.ActiveCfg = Release|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Release|ARM64.ActiveCfg = Release|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Release|x64.ActiveCfg = Release|x64
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Release|x64.Build.0 = Release|x64
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Release|x86.ActiveCfg = Release|Win32
+		{A19F0358-A69B-42CB-9C40-9BC5FA471FA5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

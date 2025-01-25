@@ -2,6 +2,8 @@
 #include "process.h"
 #include <fltKernel.h>
 #include <dontuse.h>
+#include "minifilter.h"
+#include "kflt.h"
 
 #define PTDBG_TRACE_ROUTINES            0x00000001
 #define PTDBG_TRACE_OPERATION_STATUS    0x00000002
@@ -10,24 +12,12 @@ static UNICODE_STRING g_devicename;
 static UNICODE_STRING g_devicesyslink;
 static PDEVICE_OBJECT g_deviceControl;
 
-typedef NTSTATUS(*PfnNtQueryInformationProcess) (
-    __in HANDLE ProcessHandle,
-    __in PROCESSINFOCLASS ProcessInformationClass,
-    __out_bcount(ProcessInformationLength) PVOID ProcessInformation,
-    __in ULONG ProcessInformationLength,
-    __out_opt PULONG ReturnLength
-    );
-static PfnNtQueryInformationProcess ZwQueryInformationProcess;
-
 ULONG   gTraceFlags = 0;
 #define PT_DBG_PRINT( _dbgLevel, _string )          \
     (FlagOn(gTraceFlags,(_dbgLevel)) ?              \
         DbgPrint _string :                          \
         ((int)0))
 
-/*************************************************************************
-    Prototypes
-*************************************************************************/
 EXTERN_C_START
 DRIVER_INITIALIZE DriverEntry;
 NTSTATUS
@@ -54,7 +44,11 @@ VOID driverUnload(_In_ struct _DRIVER_OBJECT* DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
     PAGED_CODE();
-    ProcessProtect_UnInit();
+    
+    Fsflt_freePort();
+    FsMini_Free();
+    ProcessUnInit();
+
     if (g_deviceControl)
     {
         IoDeleteDevice(g_deviceControl);
@@ -71,22 +65,28 @@ NTSTATUS devctrl_dispatch(IN PDEVICE_OBJECT DeviceObject, IN PIRP irp)
     irpSp = IoGetCurrentIrpStackLocation(irp);
     ASSERT(irpSp);
 
-    switch (irpSp->MajorFunction)
-    {
-    case IRP_MJ_DEVICE_CONTROL:
-    {
-        if (CTL_DEVCTRL_SET_PROCESSPID != irpSp->Parameters.DeviceIoControl.IoControlCode)
-            break;
-        const PVOID inputBuffer = irp->AssociatedIrp.SystemBuffer;
-        const ULONG inputBufferLength = irpSp->Parameters.DeviceIoControl.InputBufferLength;
-        if ((NULL == inputBuffer) || (inputBufferLength < sizeof(PPIDCMD)))
-            break;
-        const PPPIDCMD pCmdNode = (PPPIDCMD)inputBuffer;
-        if (!pCmdNode)
-            break;
-        ProcessProtect_SetProcPid(pCmdNode->processId);
-    }
-    break;
+    if (IRP_MJ_DEVICE_CONTROL == irpSp->MajorFunction) {
+        switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
+        {
+        // 进程注入
+        case NF_REQ_SET_INJECT_PROCESS:
+        {
+        }
+        break;
+        // 进程保护
+        case NF_REQ_SET_PROCESSPID:
+        {
+            const PVOID inputBuffer = irp->AssociatedIrp.SystemBuffer;
+            const ULONG inputBufferLength = irpSp->Parameters.DeviceIoControl.InputBufferLength;
+            if ((NULL == inputBuffer) || (inputBufferLength < sizeof(PPIDCMD)))
+                break;
+            const PPPIDCMD pCmdNode = (PPPIDCMD)inputBuffer;
+            if (!pCmdNode)
+                break;
+            ProcessProtect_SetProcPid(pCmdNode->processId);
+        }
+        break;
+        }
     }
 
     irp->IoStatus.Status = STATUS_SUCCESS;
@@ -110,8 +110,8 @@ NTSTATUS devctrl_default(IN PDEVICE_OBJECT DeviceObject, IN PIRP irp)
 NTSTATUS devctrl_ioInit(PDRIVER_OBJECT DriverObject) {
 	NTSTATUS status = STATUS_SUCCESS;
 	// Create Device
-	RtlInitUnicodeString(&g_devicename, L"\\Device\\PPGUARD");
-	RtlInitUnicodeString(&g_devicesyslink, L"\\DosDevices\\PPGUARD");
+	RtlInitUnicodeString(&g_devicename, L"\\Device\\HadesBox");
+	RtlInitUnicodeString(&g_devicesyslink, L"\\DosDevices\\HadesBoxDevice");
 	status = IoCreateDevice(
 		DriverObject,
 		0,
@@ -149,6 +149,28 @@ DriverEntry(
     PT_DBG_PRINT(PTDBG_TRACE_ROUTINES,
         ("driver!DriverEntry: Entered\n"));
 
+    if (ZwQueryInformationProcess == NULL)
+    {
+        UNICODE_STRING UtrZwQueryInformationProcessName =
+            RTL_CONSTANT_STRING(L"ZwQueryInformationProcess");
+        ZwQueryInformationProcess =
+            (PfnNtQueryInformationProcess)MmGetSystemRoutineAddress(&UtrZwQueryInformationProcessName);
+    }
+
+    // Init MiniFilter
+    status = FsMini_Init(DriverObject);
+    if (!NT_SUCCESS(status))
+        return status;
+    status = Mini_StartFilter();
+    if (!NT_SUCCESS(status))
+        return status;
+    status = Fsflt_initPort();
+    if (!NT_SUCCESS(status))
+    {
+        FsMini_Free();
+        return status;
+    }
+
     int i = 0;
     for (i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i)
     {
@@ -165,6 +187,7 @@ DriverEntry(
     }
 
     // Register Process
-    const NTSTATUS hSuccess = ProcessProtect_Init(DriverObject);
-    return hSuccess;
+    ProcessInit(DriverObject);
+
+    return STATUS_SUCCESS;
 }

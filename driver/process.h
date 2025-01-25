@@ -2,6 +2,13 @@
 #ifndef _PROCESS_H
 #define _PROCESS_H
 
+#define MEM_TAG_PROCESS	'PROC'
+
+typedef struct _PROC_ENTRY {
+	LIST_ENTRY lEntry;
+	HANDLE pid;
+} PROC_ENTRY, * PPROC_ENTRY;
+
 // init
 void ProcessInit(const PDRIVER_OBJECT pDriverObject);
 void ProcessUnInit();

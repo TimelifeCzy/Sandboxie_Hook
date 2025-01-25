@@ -10,8 +10,11 @@ typedef struct _PPIDCMD {
     int	    processId;
 } PPIDCMD, * PPPIDCMD;
 
-#define CTL_DEVCTRL_SET_PROCESSPID \
-	CTL_CODE(FILE_DEVICE_UNKNOWN, 0x0201, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+#define NF_REQ_SET_INJECT_PROCESS \
+	CTL_CODE(FILE_DEVICE_UNKNOWN, 101, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+#define NF_REQ_SET_PROCESSPID \
+	CTL_CODE(FILE_DEVICE_UNKNOWN, 102, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 
 typedef struct _LDR_DATA_TABLE_ENTRY64
 {
@@ -38,5 +41,14 @@ typedef struct _LDR_DATA_TABLE_ENTRY64
     ULONG64            OriginalBase;
     LARGE_INTEGER    LoadTime;
 } LDR_DATA_TABLE_ENTRY64, * PLDR_DATA_TABLE_ENTRY64;
+
+typedef NTSTATUS(*PfnNtQueryInformationProcess) (
+    __in HANDLE ProcessHandle,
+    __in PROCESSINFOCLASS ProcessInformationClass,
+    __out_bcount(ProcessInformationLength) PVOID ProcessInformation,
+    __in ULONG ProcessInformationLength,
+    __out_opt PULONG ReturnLength
+    );
+static PfnNtQueryInformationProcess ZwQueryInformationProcess = NULL;
 
 #endif
