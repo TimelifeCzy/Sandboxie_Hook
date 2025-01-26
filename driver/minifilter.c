@@ -123,6 +123,10 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] = {
       //  FsFilter1PreOperation,
       //  NULL },
 
+       { IRP_MJ_CREATE,
+        0,
+        FsFilter1PreOperation,
+        NULL/*FsFilter1PostOperation*/},
 
 #if 0 // TODO - List all of the requests to filter.
     { IRP_MJ_CREATE,
@@ -328,6 +332,7 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] = {
 //
 //  This defines what we want to filter with FltMgr
 //
+
 CONST FLT_REGISTRATION FilterRegistration = {
 
     sizeof(FLT_REGISTRATION),           //  Size
@@ -350,11 +355,7 @@ CONST FLT_REGISTRATION FilterRegistration = {
 
 };
 
-PVOID VerifiMmGetSystemAddressForMdlSafe(
-    _Inout_ PMDL Mdl,
-    _In_    ULONG Priority
-)
-{
+PVOID VerifiMmGetSystemAddressForMdlSafe(_Inout_ PMDL Mdl, _In_    ULONG Priority) {
 #if (NTDDI_VERSION >= NTDDI_WIN8)
     return  MmGetSystemAddressForMdlSafe(Mdl, Priority | MdlMappingNoExecute);
 #else
@@ -414,11 +415,7 @@ NTSTATUS Mini_StartFilter()
     return status;
 }
 
-NTSTATUS
-FsFilter1Unload(
-    _In_ FLT_FILTER_UNLOAD_FLAGS Flags
-)
-{
+NTSTATUS FsFilter1Unload(_In_ FLT_FILTER_UNLOAD_FLAGS Flags) {
     UNREFERENCED_PARAMETER(Flags);
 
     PAGED_CODE();

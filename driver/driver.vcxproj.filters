@@ -17,41 +17,47 @@
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
+    <Filter Include="port">
+      <UniqueIdentifier>{1fb1c690-e7d6-4efd-adaf-bc60d4053280}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="process">
+      <UniqueIdentifier>{d1fbb2f4-a0e0-40d5-a379-4bc4ad978479}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="driver.inf">
+    <Inf Include="HadesBox.inf">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="process.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="public.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="kflt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="minifilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="kflt.h">
+      <Filter>port</Filter>
+    </ClInclude>
+    <ClInclude Include="minifilter.h">
+      <Filter>port</Filter>
+    </ClInclude>
+    <ClInclude Include="process.h">
+      <Filter>process</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="driver.c">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="process.c">
-      <Filter>Resource Files</Filter>
+    <ClCompile Include="minifilter.c">
+      <Filter>port</Filter>
     </ClCompile>
     <ClCompile Include="kflt.c">
-      <Filter>Resource Files</Filter>
+      <Filter>port</Filter>
     </ClCompile>
-    <ClCompile Include="minifilter.c">
-      <Filter>Resource Files</Filter>
+    <ClCompile Include="process.c">
+      <Filter>process</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -16,6 +16,24 @@ typedef struct _PPIDCMD {
 #define NF_REQ_SET_PROCESSPID \
 	CTL_CODE(FILE_DEVICE_UNKNOWN, 102, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
 
+NTSYSAPI
+NTSTATUS
+NTAPI
+ZwQueryInformationProcess(
+    __in HANDLE ProcessHandle,
+    __in PROCESSINFOCLASS ProcessInformationClass,
+    __out PVOID ProcessInformation,
+    __in ULONG ProcessInformationLength,
+    __out PULONG ReturnLength
+);
+
+enum MIN_COMMAND
+{
+    IPS_PROCESSSTART = 1,
+    IPS_PROCESSINJECT = 2,
+    IPS_IMAGEDLL = 3,
+};
+
 typedef struct _LDR_DATA_TABLE_ENTRY64
 {
     LIST_ENTRY64    InLoadOrderLinks;
@@ -42,13 +60,15 @@ typedef struct _LDR_DATA_TABLE_ENTRY64
     LARGE_INTEGER    LoadTime;
 } LDR_DATA_TABLE_ENTRY64, * PLDR_DATA_TABLE_ENTRY64;
 
-typedef NTSTATUS(*PfnNtQueryInformationProcess) (
-    __in HANDLE ProcessHandle,
-    __in PROCESSINFOCLASS ProcessInformationClass,
-    __out_bcount(ProcessInformationLength) PVOID ProcessInformation,
-    __in ULONG ProcessInformationLength,
-    __out_opt PULONG ReturnLength
-    );
-static PfnNtQueryInformationProcess ZwQueryInformationProcess = NULL;
+#define HADES_READ_BUFFER_SIZE  4096 
+typedef struct _HADES_REPLY {
+    DWORD SafeToOpen;
+} HADES_REPLY, * PHADES_REPLY;
+
+typedef struct _HADES_NOTIFICATION {
+    ULONG CommandId;
+    ULONG Reserved;
+    UCHAR Contents[HADES_READ_BUFFER_SIZE];
+} HADES_NOTIFICATION, * PHADES_NOTIFICATION;
 
 #endif

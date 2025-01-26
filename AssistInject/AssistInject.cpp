@@ -3,8 +3,9 @@
 #include "HlprMiniCom.h"
 
 #include <iostream>
+#include <algorithm>
 
-const int WriteIoctBuffer (const int code, std::string sData)
+const int WriteIoctProcess (const int code, std::string sData)
 {
 	if (!g_hDevice || (INVALID_HANDLE_VALUE == g_hDevice))
 		return 1;
@@ -21,13 +22,22 @@ const int WriteIoctBuffer (const int code, std::string sData)
 		(sData.size() + 1) * sizeof(WCHAR),
 		NULL, 0,
 		&dwBytesReturned, NULL)) {
+		std::cout << ("[+] write driver inject process succes. " + sData).c_str() << std::endl;
 		return 0;
 	}
 
+	std::cout << ("[+] write driver inject process err. code " + std::to_string(GetLastError())).c_str() << std::endl;
 	return 2;
 }
 
-const int OpenDriver(const std::string& sDevSylinkName) {
+void CloseHandleDevice() {
+	if (g_hDevice) {
+		CloseHandle(g_hDevice);
+		g_hDevice = nullptr;
+	}
+}
+
+const int OpenHandleDevice(const std::string& sDevSylinkName) {
 	if (sDevSylinkName.empty())
 		return 1;
 
@@ -66,12 +76,11 @@ const bool ConfigProcessParsing(std::string& strProcessNameList)
 	if (!FileHandle || (INVALID_HANDLE_VALUE == FileHandle))
 		return false;
 
-	DWORD dwGetSize = 0;
-	const DWORD dwFileSize = GetFileSize(FileHandle, &dwGetSize);
-	//std::shared_ptr<uint8_t> data{ new uint8_t[dwFileSize] };
-	char* const data = new char[dwFileSize + 1];
+	DWORD lpFileSizeHigh = 0;
+	const DWORD dwFileSize = GetFileSize(FileHandle, &lpFileSizeHigh) + 1;
+	char* const data = new char[dwFileSize];
 	if (data)
-		RtlSecureZeroMemory(data, dwFileSize + 1);
+		RtlSecureZeroMemory(data, dwFileSize);
 	else
 	{
 		CloseHandle(FileHandle);
@@ -110,8 +119,10 @@ int main()
 		system("pause");
 		return 0;
 	}
-	sProcessList.append("|");
-	std::cout << "[+] get process json success." << sProcessList.c_str() << std::endl;
+	sProcessList.append("||");
+	std::string sProcessListTou = "";
+	std::transform(sProcessList.begin(), sProcessList.end(), back_inserter(sProcessListTou), ::toupper);
+	std::cout << "[+] get process json success." << sProcessListTou.c_str() << std::endl;
 
     // init sbie dll inject
     //ULONG errlvl = SbieDll_InjectLow_InitHelper();
@@ -120,28 +131,29 @@ int main()
     //}
 
     // open driver 
-	const int code = OpenDriver("\\??\\HadesBoxDevice");
+	const int code = OpenHandleDevice("\\??\\HadesBoxDevice");
 	if (g_hDevice == INVALID_HANDLE_VALUE) {
 		std::cout << "[-] open driver error. " << code << std::endl;
 		system("pause");
 		return 0;
 	}
+	std::cout << "[+] open driver success." << std::endl;
 
     // open miniport
 	SingletonMiniPortIpc::instance()->MiniPortInit(L"\\HadesBoxMiniPort");
-	SingletonMiniPortIpc::instance()->StartMiniPortWaitConnectWork();
 
     // write driver inject processName List
-	WriteIoctBuffer(NF_REQ_SET_INJECT_PROCESS, sProcessList);
+	WriteIoctProcess(NF_REQ_SET_INJECT_PROCESS, sProcessListTou);
 
-    // while
+    // wait exit event
 	g_hExit = CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (g_hExit) {
 		std::cout << "[+]  wait exit." << std::endl;
 		WaitForSingleObject(g_hExit, INFINITE);
 	}
 
-	std::cout << "[+] exit." << std::endl;
+	CloseHandleDevice();
+	std::cout << "[+] process exit." << std::endl;
 	system("pause");
 	return 0;
 }

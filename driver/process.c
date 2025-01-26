@@ -1,22 +1,24 @@
 #include "public.h"
 #include "process.h"
+#include "kflt.h"
+
 #define MAX_PROCESS_PATH_LEN 300
 
-static LIST_ENTRY g_procListHead;
-static KSPIN_LOCK g_procListLock;
+static LIST_ENTRY	g_procListHead;
+static KSPIN_LOCK	g_procListLock;
 
 // Inject process list
-static PWCHAR	g_pInjectProcs = NULL;
+static PWCHAR		g_pInjectProcs = NULL;
+
+// protect init
+static int			g_nProtectPid = 0;
+static PVOID		g_pObHandle = NULL;
+
+// callback init
+static int			g_bInitNotify = 0;
 
 // extern process name
 NTKERNELAPI UCHAR* PsGetProcessImageFileName(__in PEPROCESS Process);
-
-// protect init
-static int		g_nProtectPid = 0;
-static PVOID	g_pObHandle = NULL;
-
-// callback init
-static int		g_bInitNotify = 0;
 
 BOOLEAN QueryProcessNamePath(__in DWORD pid, __out PWCHAR path, __in DWORD pathlen)
 {
@@ -30,24 +32,31 @@ BOOLEAN QueryProcessNamePath(__in DWORD pid, __out PWCHAR path, __in DWORD pathl
 	cid.UniqueProcess = (HANDLE)pid;
 	cid.UniqueThread = NULL;
 	status = ZwOpenProcess(&hProc, GENERIC_ALL, &obj, &cid);
-	if (NT_SUCCESS(status) && hProc && ZwQueryInformationProcess) 
+	do
 	{
+		if (!NT_SUCCESS(status))
+			break;
+		if (hProc == NULL)
+			break;
+
 		DWORD dwProcessLen = 0;
 		WCHAR ProcessPath[MAX_PROCESS_PATH_LEN + sizeof(UNICODE_STRING)] = { 0, };
 		status = ZwQueryInformationProcess(hProc, ProcessImageFileName, ProcessPath, sizeof(ProcessPath), &dwProcessLen);
-		if (NT_SUCCESS(status))
-		{
-			PUNICODE_STRING ProcessPathUString = (PUNICODE_STRING)ProcessPath;
-			if (ProcessPathUString && ProcessPathUString->Length) {
-				if (pathlen > (DWORD)ProcessPathUString->Length + sizeof(WCHAR))
-				{
-					RtlMoveMemory(path, ProcessPathUString->Buffer, ProcessPathUString->Length + sizeof(WCHAR));
-					bRet = TRUE;
-				}
+		if (!NT_SUCCESS(status))
+			break;
+		PUNICODE_STRING ProcessPathUString = (PUNICODE_STRING)ProcessPath;
+		if (ProcessPathUString && ProcessPathUString->Length) {
+			if (pathlen > (DWORD)ProcessPathUString->Length + sizeof(WCHAR))
+			{
+				RtlMoveMemory(path, ProcessPathUString->Buffer, ProcessPathUString->Length + sizeof(WCHAR));
+				bRet = TRUE;
 			}
 		}
-		if (hProc)
-			ZwClose(hProc);
+	} while (FALSE);
+
+	if (hProc) {
+		ZwClose(hProc);
+		hProc = NULL;
 	}
 	return bRet;
 }
@@ -55,7 +64,7 @@ BOOLEAN QueryProcessNamePath(__in DWORD pid, __out PWCHAR path, __in DWORD pathl
 BOOLEAN RemoveProcessId(__in HANDLE hProcessId)
 {
 	BOOLEAN bRet = FALSE;
-	PLIST_ENTRY pListHead, t;
+	PLIST_ENTRY pListHead = NULL, t = NULL;
 	KIRQL irql;
 
 	KeAcquireSpinLock(&g_procListLock, &irql);
@@ -86,20 +95,64 @@ BOOLEAN IsInjectProcess(__in PWCHAR path)
 		PWCHAR pName = wcsrchr(path, L'\\');
 		if (pName)
 		{
-			PWCHAR pGame = g_pInjectProcs;
+			PWCHAR pInjectList = g_pInjectProcs;
 			pName++;
-			while (*pGame)
+			while (*pInjectList)
 			{
-				if (wcscmp(pGame, pName) == 0)
+				if (wcscmp(pInjectList, pName) == 0)
 				{
 					bRet = TRUE;
 					break;
 				}
-				while (*pGame++);
+				while (*pInjectList++);
 			}
 		}
 	}
 	return bRet;
+}
+
+NTSTATUS SetInjectProcess(PIRP irp, PIO_STACK_LOCATION irpSp)
+{
+	PVOID inputBuffer = irp->AssociatedIrp.SystemBuffer;
+	ULONG inputBufferLength = irpSp->Parameters.DeviceIoControl.InputBufferLength;
+	//ULONG outputBufferLength = irpSp->Parameters.DeviceIoControl.OutputBufferLength;
+	NTSTATUS status = STATUS_SUCCESS;
+
+	do
+	{
+		ULONG i = 0;
+		PWCHAR p1 = NULL, p2 = NULL;
+		if (NULL == inputBuffer || inputBufferLength < sizeof(WCHAR))
+		{
+			status = STATUS_INVALID_PARAMETER;
+			break;
+		}
+		p1 = (PWCHAR)inputBuffer;
+		p2 = (PWCHAR)ExAllocatePoolWithTag(NonPagedPoolNx, inputBufferLength, MEM_TAG_PROCESS_INJECT);
+		if (NULL == p2)
+		{
+			status = STATUS_INSUFFICIENT_RESOURCES;
+			break;
+		}
+		RtlCopyMemory(p2, p1, inputBufferLength);
+		inputBufferLength >>= 1;
+		for (i = 0; i < inputBufferLength; i++)
+		{
+			if (p2[i] == L'|')
+				p2[i] = 0;
+		}
+		p1 = g_pInjectProcs;
+		g_pInjectProcs = p2;
+		if (p1)
+		{
+			ExFreePool(p1);
+		}
+	} while (FALSE);
+
+	irp->IoStatus.Status = status;
+	irp->IoStatus.Information = 0;
+	IoCompleteRequest(irp, IO_NO_INCREMENT);
+	return status;
 }
 
 static VOID Process_NotifyProcess(
@@ -107,8 +160,11 @@ static VOID Process_NotifyProcess(
 	_In_ HANDLE hProcessId,
 	_Inout_opt_ PPS_CREATE_NOTIFY_INFO CreateInfo) {
     UNREFERENCED_PARAMETER(Process);
+	UNREFERENCED_PARAMETER(hProcessId);
+	UNREFERENCED_PARAMETER(CreateInfo);
     if (KeGetCurrentIrql() > APC_LEVEL)
         return;
+
 	do
 	{
 		if (NULL == g_pInjectProcs)
@@ -126,7 +182,7 @@ static VOID Process_NotifyProcess(
 		_wcsupr(path);
 		if (!IsInjectProcess(path))
 			break;
-
+		
 		// send inject process to r3 handle
 		PPROC_ENTRY pProcEntry = (PPROC_ENTRY)ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(PROC_ENTRY), MEM_TAG_PROCESS);
 		if (pProcEntry)
@@ -138,6 +194,39 @@ static VOID Process_NotifyProcess(
 			KeReleaseSpinLock(&g_procListLock, irql);
 		}
 
+		PHADES_NOTIFICATION  pNotification = NULL;
+		do {
+			ULONG  replaybuflen = sizeof(HADES_REPLY);
+			SIZE_T sendbuflen = sizeof(HADES_NOTIFICATION);
+			pNotification = (PHADES_NOTIFICATION)ExAllocatePoolWithTag(NonPagedPoolNx, sendbuflen, 'IPSP');
+			if (!pNotification)
+				break;
+
+			RtlZeroMemory(pNotification, sendbuflen);
+			pNotification->CommandId = IPS_PROCESSSTART;
+			PROCESSINFO processInfo;
+			RtlZeroMemory(&processInfo, sizeof(PROCESSINFO));
+			processInfo.pid = (DWORD)hProcessId;
+			processInfo.parentprocessid = (DWORD)CreateInfo->ParentProcessId;
+			RtlCopyMemory(processInfo.queryprocesspath, path, (wcslen(path) * sizeof(WCHAR)));
+			RtlCopyMemory(&pNotification->Contents, &processInfo, sizeof(PROCESSINFO));
+
+			// 进程注入
+			Fsflt_SendMsg(pNotification, sendbuflen, pNotification, &replaybuflen);
+
+			// 进程拦截
+			//NTSTATUS nSendRet = Fsflt_SendMsg(pNotification, sendbuflen, pNotification, &replaybuflen);
+			//const DWORD ReSafeToOpen = ((PHADES_REPLY)pNotification)->SafeToOpen;
+			//// 禁止
+			//if ((1 == ReSafeToOpen) || (3 == ReSafeToOpen))
+			//	CreateInfo->CreationStatus = STATUS_UNSUCCESSFUL;
+		} while (FALSE);
+
+		if (pNotification)
+		{
+			ExFreePoolWithTag(pNotification, 'IPSP');
+			pNotification = NULL;
+		} 
 	} while (FALSE);
 }
 
@@ -188,6 +277,12 @@ void ProcessInit(const PDRIVER_OBJECT pDriverObject) {
 	InitializeListHead(&g_procListHead);
 	KeInitializeSpinLock(&g_procListLock);
 
+	// 没有签名
+	PLDR_DATA_TABLE_ENTRY64 ldr = NULL;
+	ldr = (PLDR_DATA_TABLE_ENTRY64)pDriverObject->DriverSection;
+	if (ldr)
+		ldr->Flags |= 0x20;
+
 	ProcessNotifyRoutine_Init();
 	ProcessProtect_Init(pDriverObject);
 }
@@ -208,7 +303,11 @@ void ProcessUnInit() {
 			ExFreePool(pEntry);
 	}
 	KeReleaseSpinLock(&g_procListLock, irql);
-
+	if (g_pInjectProcs)
+	{
+		ExFreePool(g_pInjectProcs);
+		g_pInjectProcs = NULL;
+	}
 	ProcessNotifyRoutine_UnInit();
 	ProcessProtect_UnInit();
 }
@@ -216,7 +315,8 @@ void ProcessUnInit() {
 NTSTATUS ProcessNotifyRoutine_Init() {
 	// See: Available starting with Windows Vista with SP1 and Windows Server 2008.
 	// Msdn: https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/ntddk/nf-ntddk-pssetcreateprocessnotifyroutineex
-	if (NT_SUCCESS(STATUS_SUCCESS) == PsSetCreateProcessNotifyRoutineEx((PCREATE_PROCESS_NOTIFY_ROUTINE_EX)Process_NotifyProcess, FALSE))
+	NTSTATUS status = PsSetCreateProcessNotifyRoutineEx((PCREATE_PROCESS_NOTIFY_ROUTINE_EX)Process_NotifyProcess, FALSE);
+	if (NT_SUCCESS(status))
 		g_bInitNotify = 1;
 	return STATUS_SUCCESS;
 }
@@ -230,10 +330,6 @@ NTSTATUS ProcessNotifyRoutine_UnInit() {
 NTSTATUS ProcessProtect_Init(const PDRIVER_OBJECT pDriverObject) {
 	// return
 	return STATUS_SUCCESS;
-
-	PLDR_DATA_TABLE_ENTRY64 ldr = NULL;
-	ldr = (PLDR_DATA_TABLE_ENTRY64)pDriverObject->DriverSection;
-	ldr->Flags |= 0x20;
 
 	// Set type callout
 	OB_CALLBACK_REGISTRATION obReg;

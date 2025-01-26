@@ -1,6 +1,3 @@
-/*
-* 为了解决Event上下文等待唤醒非同步，可以用FltSendMessage方案上下文同步
-*/
 #include "public.h"
 #include <fltKernel.h>
 #include "kflt.h"

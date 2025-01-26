@@ -47,4 +47,24 @@ static HANDLE g_hDevice = INVALID_HANDLE_VALUE;
 #define NF_REQ_SET_INJECT_PROCESS \
 	CTL_CODE(FILE_DEVICE_UNKNOWN, 101, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
+#define NF_REQ_SET_PROCESSPID \
+	CTL_CODE(FILE_DEVICE_UNKNOWN, 102, METHOD_BUFFERED, FILE_READ_ACCESS | FILE_WRITE_ACCESS)
+
+enum MIN_COMMAND
+{
+	IPS_PROCESSSTART = 1,
+	IPS_PROCESSINJECT = 2,
+	IPS_IMAGEDLL = 3,
+};
+
+typedef struct _PROCESSINFO
+{
+    int parentprocessid;
+    int pid;
+    int endprocess;
+    wchar_t processpath[301 * 2];
+    wchar_t commandLine[301 * 2];
+    wchar_t queryprocesspath[301 * 2];
+}PROCESSINFO, * PPROCESSINFO;
+
 #endif //PCH_H

@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{38051a3f-8cba-4296-b698-53b9a0b1cb00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="port">
+      <UniqueIdentifier>{c84da35d-47a7-4119-9dd9-ded616d9cff3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssistInject.cpp">
@@ -22,16 +28,16 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CodeTool.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="HlprMiniCom.cpp">
-      <Filter>源文件</Filter>
+      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="FileDetailReader.cpp">
-      <Filter>源文件</Filter>
+      <Filter>util</Filter>
     </ClCompile>
     <ClCompile Include="PCInfoTool.cpp">
-      <Filter>源文件</Filter>
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="HlprMiniCom.cpp">
+      <Filter>port</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,16 +48,24 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CodeTool.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PCInfoTool.h">
-      <Filter>头文件</Filter>
+      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="FileDetailReader.h">
-      <Filter>头文件</Filter>
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="PCInfoTool.h">
+      <Filter>util</Filter>
     </ClInclude>
     <ClInclude Include="HlprMiniCom.h">
+      <Filter>port</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AssistInject.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

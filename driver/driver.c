@@ -58,6 +58,15 @@ VOID driverUnload(_In_ struct _DRIVER_OBJECT* DriverObject)
     return;
 }
 
+NTSTATUS devctrl_close(PIRP irp, PIO_STACK_LOCATION irpSp) {
+    UNREFERENCED_PARAMETER(irpSp);
+
+    irp->IoStatus.Status = STATUS_SUCCESS;
+    irp->IoStatus.Information = 0;
+    IoCompleteRequest(irp, IO_NO_INCREMENT);
+    return STATUS_SUCCESS;
+}
+
 NTSTATUS devctrl_dispatch(IN PDEVICE_OBJECT DeviceObject, IN PIRP irp)
 {
     UNREFERENCED_PARAMETER(DeviceObject);
@@ -70,9 +79,7 @@ NTSTATUS devctrl_dispatch(IN PDEVICE_OBJECT DeviceObject, IN PIRP irp)
         {
         // 进程注入
         case NF_REQ_SET_INJECT_PROCESS:
-        {
-        }
-        break;
+            return SetInjectProcess(irp, irpSp);
         // 进程保护
         case NF_REQ_SET_PROCESSPID:
         {
@@ -87,6 +94,9 @@ NTSTATUS devctrl_dispatch(IN PDEVICE_OBJECT DeviceObject, IN PIRP irp)
         }
         break;
         }
+    }
+    else if (IRP_MJ_CLOSE == irpSp->MajorFunction) {
+        return devctrl_close(irp, irpSp);
     }
 
     irp->IoStatus.Status = STATUS_SUCCESS;
@@ -144,18 +154,10 @@ DriverEntry(
 {
     NTSTATUS status = STATUS_UNSUCCESSFUL;
     UNREFERENCED_PARAMETER(RegistryPath);
-    UNREFERENCED_PARAMETER(DriverObject);
+
     ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
     PT_DBG_PRINT(PTDBG_TRACE_ROUTINES,
         ("driver!DriverEntry: Entered\n"));
-
-    if (ZwQueryInformationProcess == NULL)
-    {
-        UNICODE_STRING UtrZwQueryInformationProcessName =
-            RTL_CONSTANT_STRING(L"ZwQueryInformationProcess");
-        ZwQueryInformationProcess =
-            (PfnNtQueryInformationProcess)MmGetSystemRoutineAddress(&UtrZwQueryInformationProcessName);
-    }
 
     // Init MiniFilter
     status = FsMini_Init(DriverObject);
