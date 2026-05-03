@@ -1,0 +1,62 @@
+[Version]
+Signature="$WINDOWS NT$"
+Class=ActivityMonitor
+ClassGuid={b86dff51-a31e-4bac-b3cf-e8cfe75c9fc2}
+Provider=%ManufacturerName%
+CatalogFile=HadesBox.cat
+DriverVer=05/03/2026,1.0.0.0
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir=12
+
+[SourceDisksNames]
+1=%DiskName%,,,
+
+[SourceDisksFiles]
+HadesBox.sys=1
+
+[DefaultInstall]
+OptionDesc=%ServiceDescription%
+CopyFiles=DriverCopyFiles
+
+[DefaultInstall.Services]
+AddService=HadesBox,,ServiceInstall
+
+[DefaultInstall.NTamd64]
+CopyFiles=DriverCopyFiles
+
+[DefaultInstall.NTamd64.Services]
+AddService=HadesBox,,ServiceInstall
+
+[DefaultUninstall]
+DelFiles=DriverCopyFiles
+
+[DefaultUninstall.Services]
+DelService=HadesBox,0x200
+
+[DriverCopyFiles]
+HadesBox.sys
+
+[ServiceInstall]
+DisplayName=%ServiceDescription%
+Description=%ServiceDescription%
+ServiceBinary=%12%\HadesBox.sys
+Dependencies=FltMgr
+ServiceType=2
+StartType=3
+ErrorControl=1
+LoadOrderGroup="FSFilter Activity Monitor"
+AddReg=MinifilterInstances
+
+[MinifilterInstances]
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%DefaultInstance%,"Altitude",0x00000000,%Altitude%
+HKR,"Instances\"%DefaultInstance%,"Flags",0x00010001,0
+
+[Strings]
+ManufacturerName="Sandboxie Hook"
+DiskName="HadesBox Installation Disk"
+ServiceDescription="HadesBox MiniFilter Driver"
+DefaultInstance="HadesBox Instance"
+Altitude="321000"

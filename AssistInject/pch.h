@@ -21,6 +21,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <mutex>
 using namespace std;
 
 #pragma comment(lib, "version")
@@ -61,6 +62,7 @@ typedef struct _PROCESSINFO
 {
     int parentprocessid;
     int pid;
+    unsigned long long create_time;
     int endprocess;
     wchar_t processpath[301 * 2];
     wchar_t commandLine[301 * 2];

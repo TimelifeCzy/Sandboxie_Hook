@@ -1,0 +1,7 @@
+#include "resource.h"
+
+#ifdef _WIN64
+LOWLEVEL64 RCDATA "../bin/LowLevel64.dll"
+#else
+LOWLEVEL32 RCDATA "../bin/LowLevel.dll"
+#endif

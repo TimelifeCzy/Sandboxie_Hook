@@ -100,9 +100,13 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../;../inlcude/rapidjson/include/;</AdditionalIncludeDirectories>
     </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,11 +119,15 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../;../inlcude/rapidjson/include/;</AdditionalIncludeDirectories>
     </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -131,9 +139,13 @@
       <AdditionalIncludeDirectories>../;../inlcude/rapidjson/include/;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -147,18 +159,25 @@
       <AdditionalIncludeDirectories>../;../inlcude/rapidjson/include/;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_WIN64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssistInject.cpp" />
+    <ClCompile Include="..\common\dllimport.c" />
     <ClCompile Include="CodeTool.cpp" />
     <ClCompile Include="FileDetailReader.cpp" />
     <ClCompile Include="HlprMiniCom.cpp" />
+    <ClCompile Include="lowlevel_inject.cpp" />
+    <ClCompile Include="lowlevel_runtime.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="PCInfoTool.cpp" />
   </ItemGroup>
@@ -167,6 +186,7 @@
     <ClInclude Include="FileDetailReader.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="HlprMiniCom.h" />
+    <ClInclude Include="lowlevel_inject.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PCInfoTool.h" />
     <ClInclude Include="resource.h" />

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _PROCESS_H
 #define _PROCESS_H
 
@@ -14,6 +14,7 @@ typedef struct _PROCESSINFO
 {
 	int parentprocessid;
 	int pid;
+	ULONG64 create_time;
 	int endprocess;
 	wchar_t processpath[301 * 2];
 	wchar_t commandLine[301 * 2];
@@ -35,3 +36,4 @@ NTSTATUS ProcessProtect_UnInit(void);
 NTSTATUS ProcessProtect_SetProcPid(const int hPid);
 
 #endif
+

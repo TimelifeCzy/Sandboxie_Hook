@@ -1,4 +1,4 @@
-#include "public.h"
+ï»¿#include "public.h"
 #include "process.h"
 #include "kflt.h"
 
@@ -19,6 +19,7 @@ static int			g_bInitNotify = 0;
 
 // extern process name
 NTKERNELAPI UCHAR* PsGetProcessImageFileName(__in PEPROCESS Process);
+NTKERNELAPI LONGLONG PsGetProcessCreateTimeQuadPart(__in PEPROCESS Process);
 
 BOOLEAN QueryProcessNamePath(__in DWORD pid, __out PWCHAR path, __in DWORD pathlen)
 {
@@ -176,7 +177,15 @@ static VOID Process_NotifyProcess(
 		}
 
 		WCHAR path[MAX_PROCESS_PATH_LEN] = { 0, };
-		if (!QueryProcessNamePath((DWORD)hProcessId, path, sizeof(path)))
+		if (CreateInfo->ImageFileName && CreateInfo->ImageFileName->Buffer && CreateInfo->ImageFileName->Length)
+		{
+			USHORT pathLen = CreateInfo->ImageFileName->Length / sizeof(WCHAR);
+			if (pathLen >= RTL_NUMBER_OF(path))
+				pathLen = RTL_NUMBER_OF(path) - 1;
+			RtlCopyMemory(path, CreateInfo->ImageFileName->Buffer, pathLen * sizeof(WCHAR));
+			path[pathLen] = L'\0';
+		}
+		else if (!QueryProcessNamePath((DWORD)hProcessId, path, sizeof(path)))
 			break;
 
 		_wcsupr(path);
@@ -208,16 +217,27 @@ static VOID Process_NotifyProcess(
 			RtlZeroMemory(&processInfo, sizeof(PROCESSINFO));
 			processInfo.pid = (DWORD)hProcessId;
 			processInfo.parentprocessid = (DWORD)CreateInfo->ParentProcessId;
-			RtlCopyMemory(processInfo.queryprocesspath, path, (wcslen(path) * sizeof(WCHAR)));
+			processInfo.create_time = PsGetProcessCreateTimeQuadPart(Process);
+			RtlCopyMemory(processInfo.queryprocesspath, path, ((wcslen(path) + 1) * sizeof(WCHAR)));
 			RtlCopyMemory(&pNotification->Contents, &processInfo, sizeof(PROCESSINFO));
 
-			// ½ø³Ì×¢Èë
-			Fsflt_SendMsg(pNotification, sendbuflen, pNotification, &replaybuflen);
+			// è¿›ç¨‹æ³¨å…¥
+			NTSTATUS nSendRet = Fsflt_SendMsg(pNotification, sendbuflen, pNotification, &replaybuflen);
+			if (NT_SUCCESS(nSendRet))
+			{
+				const DWORD injectStatus = ((PHADES_REPLY)pNotification)->SafeToOpen;
+				if (injectStatus != 0)
+					DbgPrint("sandboxie_hook: inject failed for pid=%lu status=%lu\n", HandleToULong(hProcessId), injectStatus);
+			}
+			else
+			{
+				DbgPrint("sandboxie_hook: send inject notify failed for pid=%lu status=0x%08X\n", HandleToULong(hProcessId), nSendRet);
+			}
 
-			// ½ø³ÌÀ¹½Ø
+			// è¿›ç¨‹æ‹¦æˆª
 			//NTSTATUS nSendRet = Fsflt_SendMsg(pNotification, sendbuflen, pNotification, &replaybuflen);
 			//const DWORD ReSafeToOpen = ((PHADES_REPLY)pNotification)->SafeToOpen;
-			//// ½ûÖ¹
+			//// ç¦æ­¢
 			//if ((1 == ReSafeToOpen) || (3 == ReSafeToOpen))
 			//	CreateInfo->CreationStatus = STATUS_UNSUCCESSFUL;
 		} while (FALSE);
@@ -277,7 +297,7 @@ void ProcessInit(const PDRIVER_OBJECT pDriverObject) {
 	InitializeListHead(&g_procListHead);
 	KeInitializeSpinLock(&g_procListLock);
 
-	// Ã»ÓÐÇ©Ãû
+	// æ²¡æœ‰ç­¾å
 	PLDR_DATA_TABLE_ENTRY64 ldr = NULL;
 	ldr = (PLDR_DATA_TABLE_ENTRY64)pDriverObject->DriverSection;
 	if (ldr)
@@ -318,7 +338,7 @@ NTSTATUS ProcessNotifyRoutine_Init() {
 	NTSTATUS status = PsSetCreateProcessNotifyRoutineEx((PCREATE_PROCESS_NOTIFY_ROUTINE_EX)Process_NotifyProcess, FALSE);
 	if (NT_SUCCESS(status))
 		g_bInitNotify = 1;
-	return STATUS_SUCCESS;
+	return status;
 }
 
 NTSTATUS ProcessNotifyRoutine_UnInit() {
@@ -366,3 +386,4 @@ NTSTATUS ProcessProtect_SetProcPid(const int hPid)
 	g_nProtectPid = hPid;
 	return STATUS_SUCCESS;
 }
+

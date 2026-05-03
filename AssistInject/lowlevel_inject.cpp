@@ -21,12 +21,27 @@
  //---------------------------------------------------------------------------
 #include "pch.h"
 
+#include "common/defines.h"
 #include "common/my_version.h"
 #include "low/lowdata.h"
 #include "common/win32_ntddk.h"
 #include "common/api_defs.h"
 #include "common/dllimport.h"
 #include "common/arm64_asm.h"
+
+#ifndef SBIEDLL_EXPORT
+#define SBIEDLL_EXPORT
+#endif
+
+extern HMODULE Dll_Instance;
+extern HMODULE Dll_Ntdll;
+extern HMODULE Dll_KernelBase;
+extern ULONG Dll_Windows;
+extern ULONG Dll_OsBuild;
+
+LONG SbieApi_Call(ULONG api_code, LONG arg_num, ...);
+LONG SbieApi_Log(ULONG msgid, const WCHAR* format, ...);
+LONG SbieApi_GetHomePath(WCHAR* NtPath, ULONG NtPathMaxLen, WCHAR* DosPath, ULONG DosPathMaxLen);
 
 
 
@@ -775,6 +790,14 @@ _FX ULONG SbieDll_InjectLow(HANDLE hProcess, ULONG init_flags, BOOLEAN dup_drv_h
 {
 	//SVC_PROCESS_MSG *msg = (SVC_PROCESS_MSG *)_msg;
 	ULONG errlvl = 0;
+	SIZE_T lowLevel_size = 0;
+#ifdef _WIN64
+	BOOLEAN use_jump_Table = FALSE;
+	void* remote_addr32 = NULL;
+#endif
+	void* remote_addr = NULL;
+	ULONG_PTR tramp_remote_addr = 0;
+	void* remote_syscall_data = NULL;
 
 	SBIELOW_DATA lowdata;
 	memset(&lowdata, 0, sizeof(lowdata));
@@ -904,16 +927,14 @@ _FX ULONG SbieDll_InjectLow(HANDLE hProcess, ULONG init_flags, BOOLEAN dup_drv_h
 	//
 #endif
 
-	SIZE_T lowLevel_size;
 #ifdef _WIN64 
-	BOOLEAN use_jump_Table = FALSE;
 	if(use_jump_Table)
 		lowLevel_size = m_sbielow_len + sizeof(SBIELOW_J_TABLE) + 0x400;
 	else
 #endif
 		lowLevel_size = m_sbielow_len;
 		
-	void *remote_addr = SbieDll_InjectLow_CopyCode(hProcess, lowLevel_size, m_sbielow_len, m_sbielow_ptr
+	remote_addr = SbieDll_InjectLow_CopyCode(hProcess, lowLevel_size, m_sbielow_len, m_sbielow_ptr
 #ifdef _M_ARM64
 		, (BOOLEAN)lowdata.flags.is_arm64ec
 #endif
@@ -953,7 +974,6 @@ _FX ULONG SbieDll_InjectLow(HANDLE hProcess, ULONG init_flags, BOOLEAN dup_drv_h
 	}
 
 #ifdef _WIN64 
-	void *remote_addr32 = NULL;
 	if (lowdata.flags.is_wow64) {
 
 		//
@@ -1037,7 +1057,7 @@ _FX ULONG SbieDll_InjectLow(HANDLE hProcess, ULONG init_flags, BOOLEAN dup_drv_h
 
 	//
 	// remove hard coded data block offset 
-	ULONG_PTR tramp_remote_addr =   // calculate address in remote process
+	tramp_remote_addr =   // calculate address in remote process
 		(ULONG_PTR)remote_addr
 		+ m_sbielow_data_offset     // offset of args area
 		+ FIELD_OFFSET(SBIELOW_DATA, LdrInitializeThunk_tramp);
@@ -1067,7 +1087,7 @@ _FX ULONG SbieDll_InjectLow(HANDLE hProcess, ULONG init_flags, BOOLEAN dup_drv_h
 	// copy the syscall data buffer (m_syscall_data) to target process
 	//
 
-	void* remote_syscall_data = SbieDll_InjectLow_CopySyscalls(hProcess, (BOOLEAN)lowdata.flags.is_wow64
+	remote_syscall_data = SbieDll_InjectLow_CopySyscalls(hProcess, (BOOLEAN)lowdata.flags.is_wow64
 #ifdef _M_ARM64
 		, (BOOLEAN)lowdata.flags.is_arm64ec
 #endif

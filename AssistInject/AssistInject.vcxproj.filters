@@ -39,6 +39,15 @@
     <ClCompile Include="HlprMiniCom.cpp">
       <Filter>port</Filter>
     </ClCompile>
+    <ClCompile Include="lowlevel_inject.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lowlevel_runtime.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\dllimport.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -60,6 +69,9 @@
       <Filter>port</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lowlevel_inject.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

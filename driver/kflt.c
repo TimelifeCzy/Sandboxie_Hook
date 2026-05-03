@@ -1,4 +1,4 @@
-#include "public.h"
+﻿#include "public.h"
 #include <fltKernel.h>
 #include "kflt.h"
 
@@ -87,8 +87,9 @@ NTSTATUS Fsflt_SendMsg(PVOID SenderBuffer, ULONG SenderBufferLength, PVOID Reply
 			FltCloseClientPort(g_FltServerPortEvnet, &g_FltClientPortEvnetPort);
 			g_FltClientPortEvnetPort = NULL;
 		}
+		return nRet;
 	}
-	return STATUS_UNSUCCESSFUL;
+	return STATUS_PORT_DISCONNECTED;
 }
 
 void Fsflt_ClosePort()

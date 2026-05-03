@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "low/lowdata.h"
 #include "HlprMiniCom.h"
+#include "lowlevel_inject.h"
 
 #include <iostream>
 #include <algorithm>
@@ -124,12 +125,6 @@ int main()
 	std::transform(sProcessList.begin(), sProcessList.end(), back_inserter(sProcessListTou), ::toupper);
 	std::cout << "[+] get process json success." << sProcessListTou.c_str() << std::endl;
 
-    // init sbie dll inject
-    //ULONG errlvl = SbieDll_InjectLow_InitHelper();
-    //if (errlvl != 0) {
-    //    return false;
-    //}
-
     // open driver 
 	const int code = OpenHandleDevice("\\??\\HadesBoxDevice");
 	if (g_hDevice == INVALID_HANDLE_VALUE) {
@@ -138,6 +133,13 @@ int main()
 		return 0;
 	}
 	std::cout << "[+] open driver success." << std::endl;
+
+	if (!LowLevelInjectInitialize()) {
+		std::cout << "[-] init lowlevel inject runtime failed. code " << GetLastError() << std::endl;
+		system("pause");
+		return 0;
+	}
+	std::cout << "[+] init lowlevel inject runtime success." << std::endl;
 
     // open miniport
 	SingletonMiniPortIpc::instance()->MiniPortInit(L"\\HadesBoxMiniPort");
